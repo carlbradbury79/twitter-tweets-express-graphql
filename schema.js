@@ -6,6 +6,7 @@ const {
   GraphQLInt,
   GraphQLList,
   GraphQLSchema,
+  GraphQLOutput,
 } = require('graphql');
 
 var Twit = require('twit');
@@ -25,7 +26,8 @@ const TweetData = new GraphQLObjectType({
     id_str: { type: GraphQLString },
     created_at: { type: GraphQLString },
     text: { type: GraphQLString },
-    // mission_name: { type: GraphQLString },
+    full_text: { type: GraphQLString },
+    // entities: { type: GraphQLOutput },
   }),
 });
 
@@ -39,13 +41,11 @@ const RootQuery = new GraphQLObjectType({
         return T.get('statuses/user_timeline', {
           screen_name: 'frieslandschool',
           count: 5,
+          tweet_mode: 'extended',
         }).then(function (result) {
           console.log(result.data);
           return result.data;
         });
-        // return axios
-        //   .get('https://api.spacexdata.com/v3/launches')
-        //   .then((res) => res.data);
       },
     },
   },
