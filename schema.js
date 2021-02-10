@@ -7,6 +7,7 @@ const {
   GraphQLList,
   GraphQLSchema,
   GraphQLOutput,
+  GraphQLInputObjectType,
 } = require('graphql');
 
 var Twit = require('twit');
@@ -20,14 +21,61 @@ var T = new Twit({
   strictSSL: true, // optional - requires SSL certificates to be valid.
 });
 
+const SizeObjectType = new GraphQLObjectType({
+  name: 'SizeObject',
+  fields: {
+    h: { type: GraphQLInt },
+    w: { type: GraphQLInt },
+    resize: { type: GraphQLString },
+  },
+});
+
+const SizesType = new GraphQLObjectType({
+  name: 'Sizes',
+  fields: {
+    medium: { type: SizeObjectType },
+    small: { type: SizeObjectType },
+    thumb: { type: SizeObjectType },
+    large: { type: SizeObjectType },
+  },
+});
+
+const MediaType = new GraphQLObjectType({
+  name: 'Media',
+  fields: {
+    // id: { type: GraphQLInt },
+    id_str: { type: GraphQLString },
+    media_url: { type: GraphQLString },
+    media_url_https: { type: GraphQLString },
+    type: { type: GraphQLString },
+    sizes: { type: SizesType },
+  },
+});
+
+const EntitiesType = new GraphQLObjectType({
+  name: 'Entities',
+  fields: {
+    media: { type: new GraphQLList(MediaType) },
+    // sizes: { type: SizesType },
+  },
+});
+
+const ExtendedEntitiesType = new GraphQLObjectType({
+  name: 'Extended_Entities',
+  fields: {
+    media: { type: new GraphQLList(MediaType) },
+  },
+});
+
 const TweetData = new GraphQLObjectType({
   name: 'Tweets',
   fields: () => ({
     id_str: { type: GraphQLString },
     created_at: { type: GraphQLString },
-    text: { type: GraphQLString },
-    // full_text: { type: GraphQLString },
-    // entities: { type: GraphQLOutput },
+    // text: { type: GraphQLString },
+    full_text: { type: GraphQLString },
+    entities: { type: EntitiesType },
+    extended_entities: { type: ExtendedEntitiesType },
   }),
 });
 
@@ -41,9 +89,12 @@ const RootQuery = new GraphQLObjectType({
         return T.get('statuses/user_timeline', {
           screen_name: 'frieslandschool',
           count: 5,
-          // tweet_mode: 'extended',
+          tweet_mode: 'extended',
         }).then(function (result) {
           console.log(result.data);
+          result.data.forEach((tweet, i) => {
+            console.log(i, tweet.entities.media);
+          });
           return result.data;
         });
       },
